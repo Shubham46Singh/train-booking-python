@@ -1,0 +1,43 @@
+
+
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: cimg/python:3.12
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install dependencies
+          command: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+            pip install pytest
+
+      - run:
+          name: Run Python tests
+          command: python -m pytest tests/test_fares.py -v
+
+  docker-build:
+    docker:
+      - image: cimg/base:current
+
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - run:
+          name: Build Docker image
+          command: docker build -t train-booking:ci .
+
+workflows:
+  train-booking-ci:
+    jobs:
+      - test
+      - docker-build:
+          requires:
+            - test
